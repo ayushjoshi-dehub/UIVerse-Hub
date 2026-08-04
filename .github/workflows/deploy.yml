@@ -132,6 +132,9 @@ jobs:
             echo "Pulling latest docker images..."
             $DC_CMD pull
 
+            echo "Stopping and removing existing containers..."
+            $DC_CMD down --remove-orphans
+
             echo "Restarting service containers..."
             $DC_CMD up -d --remove-orphans
 
