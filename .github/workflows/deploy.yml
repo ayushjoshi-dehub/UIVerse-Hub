@@ -84,20 +84,45 @@ jobs:
             elif command -v docker-compose >/dev/null 2>&1; then
               DC_CMD="docker-compose"
             else
-              echo "No docker compose command found. Attempting to install docker-compose plugin..."
-              # Try to install plugin (requires sudo) - adjust for non-Debian distros if needed
+              echo "No docker compose command found. Attempting to install docker-compose plugin or binary..."
+
+              # If apt is present, add Docker's repo so docker-compose-plugin is available
               if command -v apt-get >/dev/null 2>&1; then
+                sudo apt-get update
+                sudo apt-get install -y ca-certificates curl gnupg lsb-release || true
+
+                sudo mkdir -p /etc/apt/keyrings
+                curl -fsSL https://download.docker.com/linux/$(. /etc/os-release && echo "$ID")/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg || true
+
+                echo \
+                  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$(. /etc/os-release && echo "$ID") \
+                  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null || true
+
                 sudo apt-get update
                 sudo apt-get install -y docker-compose-plugin || true
               fi
 
+              # Re-check
               if docker compose version >/dev/null 2>&1; then
                 DC_CMD="docker compose"
               elif command -v docker-compose >/dev/null 2>&1; then
                 DC_CMD="docker-compose"
               else
-                echo "Failed to find or install a docker compose command. Exiting."
-                exit 1
+                # Fallback: download docker compose v2 binary into CLI plugins (pick a stable release)
+                COMPOSE_VER="v2.20.2"  # update as needed
+                PLUGIN_DIR="/usr/local/lib/docker/cli-plugins"
+                sudo mkdir -p "$PLUGIN_DIR"
+                sudo curl -SL "https://github.com/docker/compose/releases/download/${COMPOSE_VER}/docker-compose-$(uname -s)-$(uname -m)" -o "$PLUGIN_DIR/docker-compose" || true
+                sudo chmod +x "$PLUGIN_DIR/docker-compose" || true
+
+                if docker compose version >/dev/null 2>&1; then
+                  DC_CMD="docker compose"
+                elif command -v docker-compose >/dev/null 2>&1; then
+                  DC_CMD="docker-compose"
+                else
+                  echo "Failed to find or install a docker compose command. Exiting."
+                  exit 1
+                fi
               fi
             fi
 
