@@ -67,7 +67,6 @@ jobs:
             echo "Generating environment file..."
             cat <<EOF > .env
             REGISTRY_USER=${{ secrets.REGISTRY_USER }}
-            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
             APP_URL=${{ secrets.APP_URL }}
             EOF
 
