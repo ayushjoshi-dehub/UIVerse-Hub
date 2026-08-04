@@ -76,8 +76,8 @@ To enable automated deployments, navigate to your GitHub Repository -> **Setting
 | `AZURE_VM_IP` | The public IP address of your Azure Virtual Machine. | `20.123.45.67` |
 | `AZURE_VM_USER` | The admin username used to access the VM. | `azureuser` |
 | `AZURE_SSH_KEY` | The entire private SSH key file content corresponding to the public key authorized on the VM. | `-----BEGIN OPENSSH PRIVATE KEY----- ...` |
-| `REGISTRY_USER` | Your GitHub Username (or username for the targeted container registry). | `your-github-username` |
-| `REGISTRY_TOKEN` | A GitHub Personal Access Token (PAT) with `write:packages` and `read:packages` permissions. | `ghp_abcdef1234567890...` |
+| `REGISTRY_USER` | Your Docker Hub Username. | `ayush991` |
+| `REGISTRY_TOKEN` | A Docker Hub Personal Access Token (or password). | `dckr_pat_abcdef...` |
 | `APP_URL` | The production domain or IP address of the deployed app. | `http://20.123.45.67` |
 
 ---

@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   web:
-    image: ghcr.io/${REGISTRY_USER}/uiverse-hub:latest
+    image: ${REGISTRY_USER}/uiverse-hub:latest
     build:
       context: .
       dockerfile: Dockerfile
