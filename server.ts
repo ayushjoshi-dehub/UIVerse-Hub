@@ -1,6 +1,5 @@
 import express from 'express';
 import path from 'path';
-import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI, Type } from '@google/genai';
 import { SEED_COMPONENTS } from './src/data/seedComponents';
 import { UIComponent, Comment, UserProfile, Collection } from './src/types';
@@ -468,6 +467,7 @@ ${typeof code === 'string' ? code : JSON.stringify(code)}`,
 // START SERVER
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa'
