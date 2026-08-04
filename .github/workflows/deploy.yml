@@ -25,7 +25,7 @@ jobs:
           password: ${{ secrets.REGISTRY_TOKEN }}
 
       - name: Build and Push Production Image
-        uses: docker/build-push-action@v6    # <--- Updated from v5 to v6
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
@@ -78,13 +78,37 @@ jobs:
 
             chmod 600 .env
 
+            # determine available docker compose command (docker compose v2 plugin or legacy docker-compose)
+            if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+              DC_CMD="docker compose"
+            elif command -v docker-compose >/dev/null 2>&1; then
+              DC_CMD="docker-compose"
+            else
+              echo "No docker compose command found. Attempting to install docker-compose plugin..."
+              # Try to install plugin (requires sudo) - adjust for non-Debian distros if needed
+              if command -v apt-get >/dev/null 2>&1; then
+                sudo apt-get update
+                sudo apt-get install -y docker-compose-plugin || true
+              fi
+
+              if docker compose version >/dev/null 2>&1; then
+                DC_CMD="docker compose"
+              elif command -v docker-compose >/dev/null 2>&1; then
+                DC_CMD="docker-compose"
+              else
+                echo "Failed to find or install a docker compose command. Exiting."
+                exit 1
+              fi
+            fi
+
+            echo "Logging in to registry..."
             echo "${{ secrets.REGISTRY_TOKEN }}" | docker login -u "${{ secrets.REGISTRY_USER }}" --password-stdin
 
             echo "Pulling latest docker images..."
-            docker compose pull
+            $DC_CMD pull
 
             echo "Restarting service containers..."
-            docker compose up -d --remove-orphans
+            $DC_CMD up -d --remove-orphans
 
             echo "Pruning unused docker resources..."
             docker image prune -af
