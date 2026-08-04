@@ -9,10 +9,10 @@ COPY package.json package-lock.json ./
 # Install all dependencies (including devDependencies for building)
 RUN npm ci
 
-# Copy application source code and configuration files
+# Copy application source code, public assets, and configuration files
 COPY tsconfig.json vite.config.ts index.html server.ts ./
 COPY src/ ./src/
-COPY assets/ ./assets/
+COPY public/ ./public/
 
 # Build client assets and compile backend server
 RUN npm run build
