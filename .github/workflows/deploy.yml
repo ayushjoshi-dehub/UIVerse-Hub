@@ -25,7 +25,7 @@ jobs:
           password: ${{ secrets.REGISTRY_TOKEN }}
 
       - name: Build and Push Production Image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6    # <--- Updated from v5 to v6
         with:
           context: .
           file: ./Dockerfile
@@ -70,28 +70,22 @@ jobs:
 
             cd ~/app
 
-            # Construct .env file dynamically
             echo "Generating environment file..."
             cat <<EOF > .env
             REGISTRY_USER=${{ secrets.REGISTRY_USER }}
             APP_URL=${{ secrets.APP_URL }}
             EOF
 
-            # Secure the .env file permissions
             chmod 600 .env
 
-            # Log in to Docker Hub on the Azure VM
             echo "${{ secrets.REGISTRY_TOKEN }}" | docker login -u "${{ secrets.REGISTRY_USER }}" --password-stdin
 
-            # Pull latest containers
             echo "Pulling latest docker images..."
             docker compose pull
 
-            # Re-create and restart container services
             echo "Restarting service containers..."
             docker compose up -d --remove-orphans
 
-            # Clean up old unused docker assets
             echo "Pruning unused docker resources..."
             docker image prune -af
 
