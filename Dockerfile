@@ -3,7 +3,6 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-
 RUN npm ci
 
 COPY tsconfig.json vite.config.ts index.html server.ts ./
@@ -20,10 +19,13 @@ ENV NODE_ENV=production
 ENV PORT=3000
 
 COPY package.json package-lock.json ./
-
 RUN npm ci --omit=dev && npm cache clean --force
 
 COPY --from=builder /app/dist ./dist
+
+# Run as non-root for security
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
 
 EXPOSE 3000
 
