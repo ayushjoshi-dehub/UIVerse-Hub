@@ -5,6 +5,7 @@
 # Run and deploy your AI Studio app
 
 This contains everything you need to run your app locally.
+checkout: http://20.196.130.5/
 
 
 ## Run Locally
