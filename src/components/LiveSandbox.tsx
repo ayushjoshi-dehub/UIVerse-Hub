@@ -167,7 +167,7 @@ export default function LiveSandbox({ code, title = 'Preview', minHeight = '320p
           ref={iframeRef}
           title={title}
           className="w-full h-full min-h-[300px] border-0 rounded-xl transition-all shadow-inner"
-          sandbox="allow-scripts allow-modals"
+          sandbox="allow-scripts allow-same-origin allow-modals"
         />
       </div>
     </div>

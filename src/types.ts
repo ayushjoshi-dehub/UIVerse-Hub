@@ -10,6 +10,12 @@ export type Framework =
   | 'Framer Motion';
 
 export type Category = 
+  | 'All'
+  | 'Interactive Elements'
+  | 'Image Gallery'
+  | 'Text Animations'
+  | 'Cursor Effects'
+  | 'Background Animations'
   | 'Buttons'
   | 'Cards'
   | 'Forms & Inputs'
@@ -18,10 +24,7 @@ export type Category =
   | 'Navigation'
   | 'Hero Sections'
   | 'Pricing Tables'
-  | 'Animations'
-  | 'Dashboards'
-  | 'Tooltips & Alerts'
-  | 'Carousels & Tabs';
+  | 'Animations';
 
 export type Difficulty = 'Beginner' | 'Intermediate' | 'Advanced';
 

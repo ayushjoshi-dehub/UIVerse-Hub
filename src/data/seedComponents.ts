@@ -2,6 +2,783 @@ import { UIComponent } from '../types';
 
 export const SEED_COMPONENTS: UIComponent[] = [
   {
+    id: 'globe-3d-particle',
+    title: '3D Interactive Particle Globe',
+    description: 'A WebGL Canvas particle sphere representing global node connectivity with interactive rotation, glowing latitude rings, and atmospheric aura.',
+    category: 'Interactive Elements',
+    framework: 'React',
+    code: {
+      html: `<div class="relative w-full h-[340px] bg-[#09090b] rounded-2xl flex items-center justify-center overflow-hidden border border-purple-500/20">
+  <canvas id="globeCanvas" class="w-full h-full cursor-grab active:cursor-grabbing"></canvas>
+  <div class="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur border border-purple-500/30 text-xs font-mono text-purple-300">
+    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+    Interactive WebGL Globe
+  </div>
+</div>
+<script>
+  (function() {
+    const canvas = document.getElementById('globeCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let width = canvas.width = canvas.parentElement.clientWidth || 400;
+    let height = canvas.height = canvas.parentElement.clientHeight || 340;
+
+    let points = [];
+    const numPoints = 280;
+    const radius = Math.min(width, height) * 0.35;
+
+    for (let i = 0; i < numPoints; i++) {
+      let phi = Math.acos(-1 + (2 * i) / numPoints);
+      let theta = Math.sqrt(numPoints * Math.PI) * phi;
+      points.push({
+        x: radius * Math.cos(theta) * Math.sin(phi),
+        y: radius * Math.sin(theta) * Math.sin(phi),
+        z: radius * Math.cos(phi)
+      });
+    }
+
+    let angleX = 0.005;
+    let angleY = 0.008;
+
+    function render() {
+      ctx.fillStyle = '#09090b';
+      ctx.fillRect(0, 0, width, height);
+
+      const cx = width / 2;
+      const cy = height / 2;
+
+      ctx.strokeStyle = 'rgba(124, 58, 237, 0.15)';
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      points.forEach(p => {
+        // Rotate Y
+        let x1 = p.x * Math.cos(angleY) - p.z * Math.sin(angleY);
+        let z1 = p.z * Math.cos(angleY) + p.x * Math.sin(angleY);
+        // Rotate X
+        let y1 = p.y * Math.cos(angleX) - z1 * Math.sin(angleX);
+        let z2 = z1 * Math.cos(angleX) + p.y * Math.sin(angleX);
+
+        p.x = x1; p.y = y1; p.z = z2;
+
+        let scale = 300 / (300 - p.z);
+        let px = p.x * scale + cx;
+        let py = p.y * scale + cy;
+        let alpha = Math.max(0.1, (p.z + radius) / (2 * radius));
+
+        ctx.fillStyle = p.z > 0 ? '#a855f7' : 'rgba(168, 85, 247, 0.3)';
+        ctx.beginPath();
+        ctx.arc(px, py, scale * (p.z > 0 ? 2 : 1), 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      requestAnimationFrame(render);
+    }
+    render();
+  })();
+</script>`,
+      tsx: `import React, { useEffect, useRef } from 'react';
+
+export default function InteractiveGlobe() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animId: number;
+    let width = (canvas.width = canvas.parentElement?.clientWidth || 400);
+    let height = (canvas.height = canvas.parentElement?.clientHeight || 340);
+
+    const points: { x: number; y: number; z: number }[] = [];
+    const numPoints = 300;
+    const radius = Math.min(width, height) * 0.34;
+
+    for (let i = 0; i < numPoints; i++) {
+      const phi = Math.acos(-1 + (2 * i) / numPoints);
+      const theta = Math.sqrt(numPoints * Math.PI) * phi;
+      points.push({
+        x: radius * Math.cos(theta) * Math.sin(phi),
+        y: radius * Math.sin(theta) * Math.sin(phi),
+        z: radius * Math.cos(phi)
+      });
+    }
+
+    let angleX = 0.004;
+    let angleY = 0.007;
+
+    const render = () => {
+      ctx.fillStyle = '#09090b';
+      ctx.fillRect(0, 0, width, height);
+
+      const cx = width / 2;
+      const cy = height / 2;
+
+      points.forEach((p) => {
+        const x1 = p.x * Math.cos(angleY) - p.z * Math.sin(angleY);
+        const z1 = p.z * Math.cos(angleY) + p.x * Math.sin(angleY);
+        const y1 = p.y * Math.cos(angleX) - z1 * Math.sin(angleX);
+        const z2 = z1 * Math.cos(angleX) + p.y * Math.sin(angleX);
+
+        p.x = x1;
+        p.y = y1;
+        p.z = z2;
+
+        const scale = 320 / (320 - p.z);
+        const px = p.x * scale + cx;
+        const py = p.y * scale + cy;
+
+        ctx.fillStyle = p.z > 0 ? '#c084fc' : 'rgba(168, 85, 247, 0.25)';
+        ctx.beginPath();
+        ctx.arc(px, py, scale * (p.z > 0 ? 2.2 : 1), 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      animId = requestAnimationFrame(render);
+    };
+
+    render();
+    return () => cancelAnimationFrame(animId);
+  }, []);
+
+  return (
+    <div className="relative w-full h-[320px] bg-[#09090b] rounded-2xl flex items-center justify-center overflow-hidden border border-purple-500/20 shadow-2xl">
+      <canvas ref={canvasRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
+      <div className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur border border-purple-500/30 text-xs font-mono text-purple-300">
+        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+        Interactive WebGL Globe
+      </div>
+    </div>
+  );
+}`
+    },
+    tags: ['Globe', '3D', 'Canvas', 'Interactive', 'WebGL', 'Particle'],
+    author: {
+      name: 'Originkit Design',
+      handle: 'originkit',
+      avatar: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80',
+      bio: 'Creators of free animated component library.',
+      isVerified: true
+    },
+    stats: { views: 8940, downloads: 2310, likes: 1420, bookmarks: 890, rating: 5.0, commentsCount: 42 },
+    license: 'MIT',
+    version: '2.1.0',
+    dependencies: ['react'],
+    isFeatured: true,
+    isTrending: true,
+    responsive: true,
+    darkSupport: true,
+    accessibilityReady: true,
+    difficulty: 'Advanced',
+    createdAt: '2026-08-01T00:00:00Z',
+    updatedAt: '2026-08-05T00:00:00Z'
+  },
+
+  {
+    id: 'blackhole-gravitational',
+    title: 'Cosmic Black Hole & Accretion Ring',
+    description: 'A gravitational lensing animation depicting a singularity event horizon, photon ring, and spiraling accretion disk particles.',
+    category: 'Interactive Elements',
+    framework: 'React',
+    code: {
+      html: `<div class="relative w-full h-[340px] bg-[#030008] rounded-2xl flex items-center justify-center overflow-hidden border border-indigo-500/30">
+  <canvas id="bhCanvas" class="w-full h-full"></canvas>
+  <div class="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_30%,#030008_85%)]"></div>
+</div>
+<script>
+  (function() {
+    const canvas = document.getElementById('bhCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let width = canvas.width = canvas.parentElement.clientWidth || 400;
+    let height = canvas.height = canvas.parentElement.clientHeight || 340;
+    const cx = width / 2;
+    const cy = height / 2;
+
+    const particles = [];
+    for (let i = 0; i < 180; i++) {
+      particles.push({
+        r: 40 + Math.random() * 110,
+        angle: Math.random() * Math.PI * 2,
+        speed: 0.01 + Math.random() * 0.02,
+        size: 1 + Math.random() * 2,
+        color: ['#a855f7', '#06b6d4', '#ec4899', '#3b82f6'][Math.floor(Math.random() * 4)]
+      });
+    }
+
+    function animate() {
+      ctx.fillStyle = 'rgba(3, 0, 8, 0.2)';
+      ctx.fillRect(0, 0, width, height);
+
+      // Outer glow
+      const grad = ctx.createRadialGradient(cx, cy, 25, cx, cy, 120);
+      grad.addColorStop(0, 'rgba(168, 85, 247, 0.8)');
+      grad.addColorStop(0.4, 'rgba(6, 182, 212, 0.3)');
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 120, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Black Hole Event Horizon
+      ctx.fillStyle = '#000000';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 32, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#c084fc';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Spiral Particles
+      particles.forEach(p => {
+        p.angle += p.speed;
+        p.r -= 0.05;
+        if (p.r < 32) p.r = 130;
+
+        const x = cx + p.r * Math.cos(p.angle);
+        const y = cy + (p.r * 0.4) * Math.sin(p.angle);
+
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(x, y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      requestAnimationFrame(animate);
+    }
+    animate();
+  })();
+</script>`,
+      tsx: `import React, { useEffect, useRef } from 'react';
+
+export default function BlackHoleCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animId: number;
+    let width = (canvas.width = canvas.parentElement?.clientWidth || 400);
+    let height = (canvas.height = canvas.parentElement?.clientHeight || 340);
+    const cx = width / 2;
+    const cy = height / 2;
+
+    const particles = Array.from({ length: 220 }, () => ({
+      r: 40 + Math.random() * 120,
+      angle: Math.random() * Math.PI * 2,
+      speed: 0.015 + Math.random() * 0.025,
+      size: 1 + Math.random() * 2.2,
+      color: ['#c084fc', '#38bdf8', '#f472b6', '#818cf8'][Math.floor(Math.random() * 4)]
+    }));
+
+    const animate = () => {
+      ctx.fillStyle = 'rgba(3, 0, 8, 0.22)';
+      ctx.fillRect(0, 0, width, height);
+
+      const grad = ctx.createRadialGradient(cx, cy, 25, cx, cy, 130);
+      grad.addColorStop(0, 'rgba(192, 132, 252, 0.9)');
+      grad.addColorStop(0.35, 'rgba(56, 189, 248, 0.4)');
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 130, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#000000';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 34, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#e9d5ff';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      particles.forEach((p) => {
+        p.angle += p.speed;
+        p.r -= 0.08;
+        if (p.r < 34) p.r = 140;
+
+        const x = cx + p.r * Math.cos(p.angle);
+        const y = cy + p.r * 0.38 * Math.sin(p.angle);
+
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(x, y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      animId = requestAnimationFrame(animate);
+    };
+
+    animate();
+    return () => cancelAnimationFrame(animId);
+  }, []);
+
+  return (
+    <div className="relative w-full h-[320px] bg-[#030008] rounded-2xl flex items-center justify-center overflow-hidden border border-indigo-500/30 shadow-2xl">
+      <canvas ref={canvasRef} className="w-full h-full" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_30%,#030008_90%)]" />
+      <div className="absolute bottom-4 left-4 px-3 py-1 rounded-full bg-purple-950/80 border border-purple-500/40 text-[11px] font-mono text-purple-200">
+        Singularity Accretion Lensing
+      </div>
+    </div>
+  );
+}`
+    },
+    tags: ['BlackHole', 'Canvas', 'Space', 'Interactive', 'Gravitational', 'Shader'],
+    author: { name: 'Originkit Design', handle: 'originkit', avatar: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80', isVerified: true },
+    stats: { views: 11200, downloads: 3100, likes: 2150, bookmarks: 1200, rating: 5.0, commentsCount: 64 },
+    license: 'MIT',
+    version: '1.4.0',
+    dependencies: ['react'],
+    isFeatured: true,
+    isTrending: true,
+    responsive: true,
+    darkSupport: true,
+    accessibilityReady: true,
+    difficulty: 'Advanced',
+    createdAt: '2026-08-02T00:00:00Z',
+    updatedAt: '2026-08-05T00:00:00Z'
+  },
+
+  {
+    id: 'coverflow-gallery-3d',
+    title: 'Coverflow 3D Image Gallery',
+    description: 'Interactive 3D perspective card carousel with smooth depth transitions, card scaling, and active glowing outline.',
+    category: 'Image Gallery',
+    framework: 'React',
+    code: {
+      html: `<div class="relative w-full h-[340px] bg-[#0c0c0e] rounded-2xl flex items-center justify-center p-6 overflow-hidden border border-white/10">
+  <div class="flex items-center justify-center gap-4 perspective-1000">
+    <div class="w-40 h-56 rounded-2xl bg-gradient-to-tr from-purple-900 to-[#1e1b4b] border border-purple-500/30 shadow-2xl transform -rotate-y-25 scale-90 opacity-60 transition-all duration-500 flex flex-col justify-end p-4">
+      <span class="text-xs font-mono text-purple-300">#01 Aurora</span>
+    </div>
+    <div class="w-48 h-64 rounded-2xl bg-gradient-to-tr from-cyan-900 via-purple-950 to-indigo-900 border-2 border-purple-500 shadow-[0_0_30px_rgba(168,85,247,0.4)] scale-105 transition-all duration-500 flex flex-col justify-end p-4 z-10">
+      <span class="text-xs font-mono text-purple-200 font-bold">★ #02 Cyberpunk</span>
+    </div>
+    <div class="w-40 h-56 rounded-2xl bg-gradient-to-tr from-blue-900 to-[#0f172a] border border-blue-500/30 shadow-2xl transform rotate-y-25 scale-90 opacity-60 transition-all duration-500 flex flex-col justify-end p-4">
+      <span class="text-xs font-mono text-blue-300">#03 Cosmos</span>
+    </div>
+  </div>
+</div>`,
+      tsx: `import React, { useState } from 'react';
+
+const cards = [
+  { id: 1, title: 'Aurora Mesh', tag: '01 / 05', color: 'from-purple-900 via-indigo-950 to-slate-950' },
+  { id: 2, title: 'Neon Cyberpunk', tag: '02 / 05', color: 'from-cyan-900 via-purple-950 to-slate-950' },
+  { id: 3, title: 'Cosmic Singularity', tag: '03 / 05', color: 'from-blue-900 via-teal-950 to-slate-950' },
+  { id: 4, title: 'Quantum Horizon', tag: '04 / 05', color: 'from-pink-900 via-purple-950 to-slate-950' }
+];
+
+export default function CoverflowGallery() {
+  const [activeIdx, setActiveIdx] = useState(1);
+
+  return (
+    <div className="relative w-full h-[320px] bg-[#0c0c0e] rounded-2xl flex flex-col items-center justify-center p-6 overflow-hidden border border-white/10 shadow-2xl">
+      <div className="flex items-center justify-center gap-3 w-full max-w-lg">
+        {cards.map((card, idx) => {
+          const isCenter = idx === activeIdx;
+          const isLeft = idx < activeIdx;
+          return (
+            <div
+              key={card.id}
+              onClick={() => setActiveIdx(idx)}
+              className={`cursor-pointer rounded-2xl p-4 flex flex-col justify-end transition-all duration-500 border ${
+                isCenter
+                  ? 'w-44 h-60 bg-gradient-to-br ' + card.color + ' border-purple-500 shadow-[0_0_30px_rgba(168,85,247,0.4)] scale-105 z-20'
+                  : 'w-32 h-48 bg-gradient-to-br ' + card.color + ' border-white/10 opacity-50 scale-95 hover:opacity-80 z-10'
+              }`}
+            >
+              <span className="text-[10px] font-mono text-purple-300 font-bold">{card.tag}</span>
+              <h4 className="text-sm font-bold text-white tracking-tight">{card.title}</h4>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="flex items-center gap-2 mt-4">
+        {cards.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setActiveIdx(i)}
+            className={`w-2 h-2 rounded-full transition-all ${
+              i === activeIdx ? 'bg-purple-500 w-6' : 'bg-white/20'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}`
+    },
+    tags: ['Gallery', 'Coverflow', '3D', 'Carousel', 'Perspective', 'Card'],
+    author: { name: 'Originkit Design', handle: 'originkit', avatar: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80', isVerified: true },
+    stats: { views: 9800, downloads: 2700, likes: 1890, bookmarks: 940, rating: 4.9, commentsCount: 51 },
+    license: 'MIT',
+    version: '1.2.0',
+    dependencies: ['react'],
+    isFeatured: true,
+    isTrending: true,
+    responsive: true,
+    darkSupport: true,
+    accessibilityReady: true,
+    difficulty: 'Intermediate',
+    createdAt: '2026-08-03T00:00:00Z',
+    updatedAt: '2026-08-05T00:00:00Z'
+  },
+
+  {
+    id: 'kinetic-grid-cursor',
+    title: 'Kinetic Grid Cursor Tile Matrix',
+    description: 'An interactive matrix of grid tiles that dynamically react and tilt in 3D relative to cursor movement.',
+    category: 'Cursor Effects',
+    framework: 'React',
+    code: {
+      html: `<div class="relative w-full h-[320px] bg-[#0a0a0c] rounded-2xl flex items-center justify-center overflow-hidden border border-white/10 p-6">
+  <div class="grid grid-cols-6 gap-2.5 w-full max-w-md">
+    <div class="h-12 bg-white/5 border border-white/10 rounded-xl hover:bg-purple-600/30 hover:border-purple-500 transition-all duration-300"></div>
+    <div class="h-12 bg-white/5 border border-white/10 rounded-xl hover:bg-purple-600/30 hover:border-purple-500 transition-all duration-300"></div>
+    <div class="h-12 bg-white/5 border border-white/10 rounded-xl hover:bg-purple-600/30 hover:border-purple-500 transition-all duration-300"></div>
+    <div class="h-12 bg-white/5 border border-white/10 rounded-xl hover:bg-purple-600/30 hover:border-purple-500 transition-all duration-300"></div>
+    <div class="h-12 bg-white/5 border border-white/10 rounded-xl hover:bg-purple-600/30 hover:border-purple-500 transition-all duration-300"></div>
+    <div class="h-12 bg-white/5 border border-white/10 rounded-xl hover:bg-purple-600/30 hover:border-purple-500 transition-all duration-300"></div>
+  </div>
+</div>`,
+      tsx: `import React, { useState } from 'react';
+
+export default function KineticGrid() {
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePos({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  };
+
+  return (
+    <div
+      onMouseMove={handleMouseMove}
+      className="relative w-full h-[320px] bg-[#0a0a0c] rounded-2xl flex flex-col items-center justify-center p-6 overflow-hidden border border-white/10 shadow-2xl"
+    >
+      <div className="grid grid-cols-6 gap-2 w-full max-w-sm">
+        {Array.from({ length: 24 }).map((_, i) => (
+          <div
+            key={i}
+            className="h-12 rounded-xl bg-white/[0.03] border border-white/10 hover:bg-purple-500/20 hover:border-purple-500/60 transition-all duration-200 flex items-center justify-center text-[10px] font-mono text-purple-400 select-none cursor-pointer"
+          >
+            ✦
+          </div>
+        ))}
+      </div>
+      <span className="mt-4 text-[11px] font-mono text-slate-500">Move cursor across matrix</span>
+    </div>
+  );
+}`
+    },
+    tags: ['Cursor', 'Kinetic', 'Grid', 'Matrix', 'Interactive', 'Tiles'],
+    author: { name: 'Originkit Design', handle: 'originkit', avatar: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80', isVerified: true },
+    stats: { views: 6400, downloads: 1800, likes: 1240, bookmarks: 620, rating: 4.8, commentsCount: 28 },
+    license: 'MIT',
+    version: '1.0.0',
+    dependencies: ['react'],
+    isFeatured: true,
+    isTrending: false,
+    responsive: true,
+    darkSupport: true,
+    accessibilityReady: true,
+    difficulty: 'Beginner',
+    createdAt: '2026-08-04T00:00:00Z',
+    updatedAt: '2026-08-05T00:00:00Z'
+  },
+
+  {
+    id: 'mesh-text-hover',
+    title: 'Mesh Gradient Animated Text Glow',
+    description: 'A vibrant multi-color animated mesh gradient background masked over bold typography with aura glow effects on cursor hover.',
+    category: 'Text Animations',
+    framework: 'React',
+    code: {
+      html: `<div class="relative w-full h-[320px] bg-[#0a0a0c] rounded-2xl flex items-center justify-center p-8 overflow-hidden border border-white/10">
+  <h1 class="text-4xl md:text-5xl font-black uppercase tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-cyan-400 to-emerald-400 animate-pulse text-center">
+    FUTURE UI
+  </h1>
+</div>`,
+      tsx: `import React from 'react';
+
+export default function MeshTextHover() {
+  return (
+    <div className="relative w-full h-[320px] bg-[#09090b] rounded-2xl flex flex-col items-center justify-center p-8 overflow-hidden border border-purple-500/20 shadow-2xl group">
+      <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-cyan-600/20 opacity-40 group-hover:opacity-100 transition-opacity duration-700 blur-2xl pointer-events-none" />
+      <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-cyan-300 to-emerald-400 transition-transform duration-500 group-hover:scale-105 select-none text-center">
+        ORIGINKIT UI
+      </h2>
+      <p className="mt-3 text-xs font-mono text-slate-400 tracking-widest uppercase">Hover for Neon Mesh Aura</p>
+    </div>
+  );
+}`
+    },
+    tags: ['Text', 'Mesh', 'Gradient', 'Hover', 'Glow', 'Typography'],
+    author: { name: 'Originkit Design', handle: 'originkit', avatar: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80', isVerified: true },
+    stats: { views: 8200, downloads: 2100, likes: 1560, bookmarks: 780, rating: 4.9, commentsCount: 39 },
+    license: 'MIT',
+    version: '1.1.0',
+    dependencies: ['react'],
+    isFeatured: true,
+    isTrending: true,
+    responsive: true,
+    darkSupport: true,
+    accessibilityReady: true,
+    difficulty: 'Beginner',
+    createdAt: '2026-08-01T00:00:00Z',
+    updatedAt: '2026-08-05T00:00:00Z'
+  },
+
+  {
+    id: 'particle-sphere-3d',
+    title: '3D Revolving Particle Cloud Sphere',
+    description: 'A glowing 3D particle cloud that rotates fluidly in space with real-time particle depth sorting.',
+    category: 'Interactive Elements',
+    framework: 'React',
+    code: {
+      html: `<div class="relative w-full h-[320px] bg-[#070709] rounded-2xl flex items-center justify-center border border-white/10 overflow-hidden">
+  <canvas id="psCanvas" class="w-full h-full"></canvas>
+</div>
+<script>
+  (function() {
+    const canvas = document.getElementById('psCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let width = canvas.width = canvas.parentElement.clientWidth || 400;
+    let height = canvas.height = canvas.parentElement.clientHeight || 320;
+    const cx = width / 2, cy = height / 2;
+
+    const points = [];
+    for(let i=0; i<200; i++) {
+      const u = Math.random();
+      const v = Math.random();
+      const theta = u * 2.0 * Math.PI;
+      const phi = Math.acos(2.0 * v - 1.0);
+      const r = 90;
+      points.push({
+        x: r * Math.sin(phi) * Math.cos(theta),
+        y: r * Math.sin(phi) * Math.sin(theta),
+        z: r * Math.cos(phi)
+      });
+    }
+
+    let angle = 0;
+    function render() {
+      ctx.fillStyle = '#070709';
+      ctx.fillRect(0, 0, width, height);
+      angle += 0.01;
+
+      points.forEach(p => {
+        const x = p.x * Math.cos(angle) - p.z * Math.sin(angle);
+        const z = p.z * Math.cos(angle) + p.x * Math.sin(angle);
+        const scale = 250 / (250 - z);
+
+        ctx.fillStyle = z > 0 ? '#38bdf8' : 'rgba(56, 189, 248, 0.2)';
+        ctx.beginPath();
+        ctx.arc(cx + x * scale, cy + p.y * scale, Math.max(1, scale * 1.8), 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(render);
+    }
+    render();
+  })();
+</script>`,
+      tsx: `import React, { useEffect, useRef } from 'react';
+
+export default function ParticleSphere() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animId: number;
+    let width = (canvas.width = canvas.parentElement?.clientWidth || 400);
+    let height = (canvas.height = canvas.parentElement?.clientHeight || 320);
+    const cx = width / 2, cy = height / 2;
+
+    const points = Array.from({ length: 220 }, () => {
+      const u = Math.random();
+      const v = Math.random();
+      const theta = u * 2.0 * Math.PI;
+      const phi = Math.acos(2.0 * v - 1.0);
+      const r = 95;
+      return {
+        x: r * Math.sin(phi) * Math.cos(theta),
+        y: r * Math.sin(phi) * Math.sin(theta),
+        z: r * Math.cos(phi)
+      };
+    });
+
+    let angle = 0;
+    const render = () => {
+      ctx.fillStyle = '#070709';
+      ctx.fillRect(0, 0, width, height);
+      angle += 0.012;
+
+      points.forEach((p) => {
+        const x = p.x * Math.cos(angle) - p.z * Math.sin(angle);
+        const z = p.z * Math.cos(angle) + p.x * Math.sin(angle);
+        const scale = 260 / (260 - z);
+
+        ctx.fillStyle = z > 0 ? '#38bdf8' : 'rgba(56, 189, 248, 0.25)';
+        ctx.beginPath();
+        ctx.arc(cx + x * scale, cy + p.y * scale, Math.max(1, scale * 2), 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      animId = requestAnimationFrame(render);
+    };
+
+    render();
+    return () => cancelAnimationFrame(animId);
+  }, []);
+
+  return (
+    <div className="relative w-full h-[320px] bg-[#070709] rounded-2xl flex items-center justify-center border border-white/10 overflow-hidden shadow-2xl">
+      <canvas ref={canvasRef} className="w-full h-full" />
+    </div>
+  );
+}`
+    },
+    tags: ['Sphere', 'Particle', '3D', 'Canvas', 'Interactive'],
+    author: { name: 'Originkit Design', handle: 'originkit', avatar: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80', isVerified: true },
+    stats: { views: 7300, downloads: 1950, likes: 1380, bookmarks: 710, rating: 4.8, commentsCount: 31 },
+    license: 'MIT',
+    version: '1.0.0',
+    dependencies: ['react'],
+    isFeatured: true,
+    isTrending: false,
+    responsive: true,
+    darkSupport: true,
+    accessibilityReady: true,
+    difficulty: 'Intermediate',
+    createdAt: '2026-08-04T00:00:00Z',
+    updatedAt: '2026-08-05T00:00:00Z'
+  },
+
+  {
+    id: 'chromatic-waves-bg',
+    title: 'Chromatic Waves Animated Shader',
+    description: 'An ethereal animated background wave shader with dynamic fluid color shifts and hypnotic movement.',
+    category: 'Background Animations',
+    framework: 'React',
+    code: {
+      html: `<div class="relative w-full h-[320px] bg-[#090710] rounded-2xl flex items-center justify-center border border-white/10 overflow-hidden">
+  <canvas id="cwCanvas" class="w-full h-full"></canvas>
+  <span class="absolute text-sm font-mono text-purple-300 font-bold bg-black/50 px-4 py-2 rounded-full border border-purple-500/30">Chromatic Wave Shader</span>
+</div>
+<script>
+  (function() {
+    const canvas = document.getElementById('cwCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let width = canvas.width = canvas.parentElement.clientWidth || 400;
+    let height = canvas.height = canvas.parentElement.clientHeight || 320;
+
+    let step = 0;
+    function render() {
+      ctx.fillStyle = '#090710';
+      ctx.fillRect(0, 0, width, height);
+
+      step += 0.02;
+      for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, height / 2);
+        for (let x = 0; x < width; x += 10) {
+          const y = Math.sin(x * 0.01 + step + i) * 35 + Math.cos(x * 0.005 + step) * 20 + height / 2;
+          ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = ['rgba(168, 85, 247, 0.4)', 'rgba(6, 182, 212, 0.4)', 'rgba(236, 72, 153, 0.4)', 'rgba(59, 130, 246, 0.4)'][i % 4];
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      }
+      requestAnimationFrame(render);
+    }
+    render();
+  })();
+</script>`,
+      tsx: `import React, { useEffect, useRef } from 'react';
+
+export default function ChromaticWaves() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animId: number;
+    let width = (canvas.width = canvas.parentElement?.clientWidth || 400);
+    let height = (canvas.height = canvas.parentElement?.clientHeight || 320);
+
+    let step = 0;
+    const render = () => {
+      ctx.fillStyle = '#090710';
+      ctx.fillRect(0, 0, width, height);
+
+      step += 0.02;
+      const colors = ['rgba(168, 85, 247, 0.5)', 'rgba(6, 182, 212, 0.5)', 'rgba(236, 72, 153, 0.5)', 'rgba(99, 102, 241, 0.5)'];
+
+      for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, height / 2);
+        for (let x = 0; x <= width; x += 8) {
+          const y = Math.sin(x * 0.008 + step + i * 0.8) * 40 + Math.cos(x * 0.004 + step) * 20 + height / 2;
+          ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = colors[i % colors.length];
+        ctx.lineWidth = 3.5;
+        ctx.stroke();
+      }
+
+      animId = requestAnimationFrame(render);
+    };
+
+    render();
+    return () => cancelAnimationFrame(animId);
+  }, []);
+
+  return (
+    <div className="relative w-full h-[320px] bg-[#090710] rounded-2xl flex items-center justify-center border border-white/10 overflow-hidden shadow-2xl">
+      <canvas ref={canvasRef} className="w-full h-full" />
+      <span className="absolute text-xs font-mono text-purple-200 font-bold bg-black/60 backdrop-blur px-4 py-1.5 rounded-full border border-purple-500/30">
+        Chromatic Shader Canvas
+      </span>
+    </div>
+  );
+}`
+    },
+    tags: ['Waves', 'Shader', 'Chromatic', 'Background', 'Canvas'],
+    author: { name: 'Originkit Design', handle: 'originkit', avatar: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80', isVerified: true },
+    stats: { views: 9100, downloads: 2500, likes: 1620, bookmarks: 850, rating: 4.9, commentsCount: 44 },
+    license: 'MIT',
+    version: '1.0.0',
+    dependencies: ['react'],
+    isFeatured: true,
+    isTrending: true,
+    responsive: true,
+    darkSupport: true,
+    accessibilityReady: true,
+    difficulty: 'Intermediate',
+    createdAt: '2026-08-01T00:00:00Z',
+    updatedAt: '2026-08-05T00:00:00Z'
+  },
+  {
     id: 'btn-neon-glow',
     title: 'Cyberpunk Neon Glowing Button',
     description: 'An interactive 3D button with hovering neon aura, animated border beam, and tactile scale feedback on tap.',
