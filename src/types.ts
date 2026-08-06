@@ -24,6 +24,7 @@ export type Category =
   | 'Navigation'
   | 'Hero Sections'
   | 'Pricing Tables'
+  | 'Dashboards'
   | 'Animations';
 
 export type Difficulty = 'Beginner' | 'Intermediate' | 'Advanced';
